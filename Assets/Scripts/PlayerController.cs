@@ -25,10 +25,9 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded;
     private bool isFirstPerson = false;
 
-    void Awake()
+    private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true;
         Cursor.lockState = CursorLockMode.Locked;
 
         currentSpeed = walkSpeed;
@@ -36,7 +35,7 @@ public class PlayerController : MonoBehaviour
         ApplySensitivity();
     }
 
-    void OnValidate()
+    private void OnValidate()
     {
         if (Application.isPlaying) ApplySensitivity();
     }
@@ -60,18 +59,18 @@ public class PlayerController : MonoBehaviour
         currentSpeed = isSprinting ? sprintSpeed : walkSpeed;
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         CheckGround();
         Move();
     }
 
-    void CheckGround()
+    private void CheckGround()
     {
         isGrounded = Physics.Raycast(transform.position, Vector3.down, 1.1f, groundLayer);
     }
 
-    void Move()
+    private void Move()
     {
         Transform camTransform = Camera.main.transform;
         Vector3 forward = camTransform.forward;
@@ -90,7 +89,7 @@ public class PlayerController : MonoBehaviour
         rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, 0.5f));
     }
 
-    void Jump()
+    private void Jump()
     {
         if (isGrounded)
         {
@@ -99,7 +98,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void ToggleCamera()
+    private void ToggleCamera()
     {
         CinemachineCamera targetCam = isFirstPerson ? thirdPersonCam : firstPersonCam;
         SyncCameras(targetCam);
@@ -108,26 +107,22 @@ public class PlayerController : MonoBehaviour
         UpdateCameraPriority();
     }
 
-    void SyncCameras(CinemachineCamera targetCam)
+    private void SyncCameras(CinemachineCamera targetCam)
     {
         if (targetCam == null) return;
 
-        // 현재 메인 카메라의 회전값 가져오기
         Vector3 currentAngles = Camera.main.transform.eulerAngles;
 
         float pitch = currentAngles.x;
         if (pitch > 180) pitch -= 360;
 
-        // 1. 3인칭 카메라(Orbital Follow)일 때 동기화
         var orbitalFollow = targetCam.GetComponent<CinemachineOrbitalFollow>();
         if (orbitalFollow != null)
         {
-            // Orbital Follow는 내부적으로 축 이름을 사용합니다.
-            orbitalFollow.HorizontalAxis.Value = currentAngles.y; // Horizontal Axis
-            orbitalFollow.VerticalAxis.Value = pitch;           // Vertical Axis
+            orbitalFollow.HorizontalAxis.Value = currentAngles.y;
+            orbitalFollow.VerticalAxis.Value = pitch;
         }
 
-        // 2. 1인칭 카메라(Pan Tilt)일 때 동기화
         var panTilt = targetCam.GetComponent<CinemachinePanTilt>();
         if (panTilt != null)
         {
@@ -136,7 +131,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void UpdateCameraPriority()
+    private void UpdateCameraPriority()
     {
         firstPersonCam.Priority = isFirstPerson ? 10 : 5;
         thirdPersonCam.Priority = isFirstPerson ? 5 : 10;
@@ -148,7 +143,7 @@ public class PlayerController : MonoBehaviour
         SetCamSensitivity(thirdPersonCam);
     }
 
-    void SetCamSensitivity(CinemachineCamera cam)
+    private void SetCamSensitivity(CinemachineCamera cam)
     {
         if (cam == null) return;
 
@@ -161,7 +156,7 @@ public class PlayerController : MonoBehaviour
             }
             if (inputController.Controllers.Count > 1)
             {
-                inputController.Controllers[1].Input.Gain = -mouseSensitivity;
+                inputController.Controllers[1].Input.Gain = -mouseSensitivity - 25;
             }
         }
     }
